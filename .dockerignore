@@ -4,3 +4,6 @@ logs/
 .venv
 airflow.db
 airflow.cfg
+.idea
+.ruff_cache
+**/__pycache__
