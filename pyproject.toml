@@ -1,0 +1,33 @@
+[project]
+name = "amazon-reviews"
+version = "0.1.0"
+description = "Amazon reviews lakehouse: Airflow + Spark + Iceberg on S3"
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = []
+
+[dependency-groups]
+# Local venv for DAG tests and IDE autocomplete. Airflow needs its constraints file:
+#   uv venv --python 3.12
+#   uv pip install --group dev \
+#     -c https://raw.githubusercontent.com/apache/airflow/constraints-3.3.2/constraints-3.12.txt
+dev = [
+    "apache-airflow[amazon,docker,postgres]==3.3.2",
+    "pytest",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests/dags"]  # Spark tests run in the spark test image: pytest tests/spark
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

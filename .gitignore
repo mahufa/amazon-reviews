@@ -1,0 +1,11 @@
+.env
+.DS_Store
+__pycache__/
+.venv
+webserver_config.py
+airflow.cfg
+airflow.db
+.mcp.json
+logs/
+.idea/
+.ruff_cache
