@@ -3,6 +3,10 @@ services:
     volumes:
       - ./dev/postgres/init:/docker-entrypoint-initdb.d
 
+  airflow-scheduler:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   minio:
     image: quay.io/minio/minio:RELEASE.2024-06-13T22-53-53Z
     container_name: minio_storage
