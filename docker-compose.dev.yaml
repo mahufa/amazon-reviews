@@ -1,0 +1,51 @@
+services:
+  postgres-airflow:
+    volumes:
+      - ./dev/postgres/init:/docker-entrypoint-initdb.d
+
+  airflow-scheduler:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-06-13T22-53-53Z
+    container_name: minio_storage
+    hostname: minio
+    restart: always
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - default_net
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...';
+      /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
+      /usr/bin/mc mb myminio/bronze --ignore-existing;
+      /usr/bin/mc mb myminio/silver --ignore-existing;
+      /usr/bin/mc mb myminio/gold --ignore-existing;
+      echo 'Buckets created successfully.';
+      exit 0;
+      "
+    networks:
+      - default_net
+
+volumes:
+  minio_data:
