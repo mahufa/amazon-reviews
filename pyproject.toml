@@ -15,10 +15,21 @@ dev = [
     "apache-airflow[amazon,docker,postgres]==3.3.2",
     "pytest",
     "ruff",
+    "poethepoet",
 ]
 
 [tool.uv]
 package = false
+
+[tool.poe.tasks]
+dev-start = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up"
+dev-stop = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml down --remove-orphans"
+dev-restart = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml restart"
+dev-clean = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml down --volumes --remove-orphans"
+
+_ruff-check = "ruff check --fix"
+_ruff-format = "ruff format"
+lint = [{ ref = "_ruff-check" }, { ref = "_ruff-format" }]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/dags"]  # Spark tests run in the spark test image: pytest tests/spark
@@ -31,3 +42,6 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.format]
+quote-style = "single"
