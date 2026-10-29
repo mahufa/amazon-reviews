@@ -39,6 +39,7 @@ services:
       /bin/sh -c "
       echo 'Waiting for MinIO...';
       mc alias set local http://minio:9000 minio minio123;
+      mc mb local/$${AIRFLOW_VAR_BUCKET_LANDING} --ignore-existing;
       mc mb local/$${AIRFLOW_VAR_BUCKET_BRONZE} --ignore-existing;
       mc mb local/$${AIRFLOW_VAR_BUCKET_SILVER} --ignore-existing;
       mc mb local/$${AIRFLOW_VAR_BUCKET_GOLD} --ignore-existing;
