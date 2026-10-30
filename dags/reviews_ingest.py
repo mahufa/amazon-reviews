@@ -25,7 +25,7 @@ def reviews_ingest():
     )
     def land_data(reviews_category: str) -> str:
         category_path = REVIEWS_DIR_PATH + reviews_category + '.jsonl'
-        s3_key = 'amazon_reviews/review_categories/' + category_path.split('/')[-1]
+        s3_key = 'amazon_reviews/review_categories/' + reviews_category + '.jsonl'
 
         get_and_store_file(category_path, s3_key)
 
