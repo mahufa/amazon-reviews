@@ -30,15 +30,20 @@ def reviews_ingest():
 
         get_and_store_file(category_path, s3_key)
 
-        return s3_key
+        return f's3a://{Variable.get("bucket_landing")}/{s3_key}'
 
     @task_group
     def ingest_and_partition_category(reviews_category: str):
-        s3_key = land_data(reviews_category)
+        source_uri = land_data(reviews_category)
         spark_job_depending_on_backend(
             'landing_to_bronze',
             'jobs/landing_to_bronze.py',
-            ['--key', s3_key, '--bucket', '{{ var.value.bucket_landing }}'],
+            [
+                '--source',
+                source_uri,
+                '--target',
+                's3a://{{ var.value.bucket_bronze }}/amazon_reviews/reviews',
+            ],
         )
 
     ingest_and_partition_category.expand(reviews_category=get_categories())
