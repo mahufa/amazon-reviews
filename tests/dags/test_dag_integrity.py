@@ -4,7 +4,7 @@ import pytest
 from airflow.models import DagBag
 
 DAGS_DIR = Path(__file__).parents[2] / 'dags'
-EXPECTED_DAG_IDS = {'reviews_ingest'}
+EXPECTED_DAG_IDS = {'reviews_ingest', 'reviews_monthly'}
 
 
 @pytest.fixture(scope='session')
