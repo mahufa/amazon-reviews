@@ -27,6 +27,8 @@ dev-stop = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml dow
 dev-restart = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml restart"
 dev-clean = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml down --volumes --remove-orphans"
 
+spark-build = "docker build -f spark/Dockerfile --target runtime -t amazon-reviews-spark:latest ."
+
 _ruff-check = "ruff check --fix"
 _ruff-format = "ruff format"
 lint = [{ ref = "_ruff-check" }, { ref = "_ruff-format" }]
