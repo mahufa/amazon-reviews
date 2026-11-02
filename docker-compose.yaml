@@ -11,9 +11,6 @@ x-airflow-common:
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
     AIRFLOW__API_AUTH__JWT_SECRET: local-dev-jwt-secret
-    AIRFLOW_VAR_BUCKET_BRONZE: 'bronze'
-    AIRFLOW_VAR_BUCKET_SILVER: 'silver'
-    AIRFLOW_VAR_BUCKET_GOLD: 'gold'
     PYTHONPATH: '/opt/airflow'
   volumes:
     - ./dags:/opt/airflow/dags

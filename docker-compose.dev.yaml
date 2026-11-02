@@ -34,13 +34,14 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    env_file: .env
     entrypoint: >
       /bin/sh -c "
       echo 'Waiting for MinIO...';
-      /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
-      /usr/bin/mc mb myminio/bronze --ignore-existing;
-      /usr/bin/mc mb myminio/silver --ignore-existing;
-      /usr/bin/mc mb myminio/gold --ignore-existing;
+      mc alias set local http://minio:9000 minio minio123;
+      mc mb local/$${AIRFLOW_VAR_BUCKET_BRONZE} --ignore-existing;
+      mc mb local/$${AIRFLOW_VAR_BUCKET_SILVER} --ignore-existing;
+      mc mb local/$${AIRFLOW_VAR_BUCKET_GOLD} --ignore-existing;
       echo 'Buckets created successfully.';
       exit 0;
       "
