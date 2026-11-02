@@ -2,6 +2,7 @@ from airflow.sdk import Variable, dag, task, task_group
 from pendulum import datetime, duration
 
 from include.helpers.ingest import get_and_store_file
+from include.helpers.paths import BRONZE_REVIEWS_PREFIX, LANDING_REVIEWS_PREFIX
 from include.helpers.spark.job_factory import spark_job_depending_on_backend
 
 REVIEWS_DIR_PATH = 'https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/'
@@ -26,7 +27,7 @@ def reviews_ingest():
     )
     def land_data(reviews_category: str) -> str:
         category_path = REVIEWS_DIR_PATH + reviews_category + '.jsonl'
-        s3_key = 'amazon_reviews/review_categories/' + reviews_category + '.jsonl'
+        s3_key = f'{LANDING_REVIEWS_PREFIX}/{reviews_category}.jsonl'
 
         get_and_store_file(category_path, s3_key)
 
@@ -42,7 +43,7 @@ def reviews_ingest():
                 '--source',
                 source_uri,
                 '--target',
-                's3a://{{ var.value.bucket_bronze }}/amazon_reviews/reviews',
+                f's3a://{{{{ var.value.bucket_bronze }}}}/{BRONZE_REVIEWS_PREFIX}',
             ],
         )
 

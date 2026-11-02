@@ -3,6 +3,7 @@ from airflow.sdk import dag, task
 from pendulum import datetime, duration
 
 from include.helpers.monthly import bronze_month_has_data
+from include.helpers.paths import BRONZE_REVIEWS_PREFIX
 from include.helpers.spark.job_factory import spark_job_depending_on_backend
 
 
@@ -31,7 +32,7 @@ def reviews_monthly():
             '--month',
             '{{ data_interval_start.month }}',
             '--source',
-            's3a://{{ var.value.bucket_bronze }}/amazon_reviews/reviews',
+            f's3a://{{{{ var.value.bucket_bronze }}}}/{BRONZE_REVIEWS_PREFIX}',
         ],
     )
     silver_to_gold = spark_job_depending_on_backend(
