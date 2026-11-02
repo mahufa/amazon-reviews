@@ -1,13 +1,10 @@
-from airflow.sdk import dag, task, task_group
+from airflow.sdk import Variable, dag, task, task_group
 from pendulum import datetime, duration
 
 from include.helpers.ingest import get_and_store_file
 from include.helpers.spark.job_factory import spark_job_depending_on_backend
 
 REVIEWS_DIR_PATH = 'https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/'
-REVIEWS_CATEGORIES = [
-    'All_Beauty',
-]
 
 
 @dag(
@@ -19,6 +16,10 @@ REVIEWS_CATEGORIES = [
     dagrun_timeout=duration(hours=5),
 )
 def reviews_ingest():
+    @task
+    def get_categories() -> list[str]:
+        return Variable.get('reviews_categories', deserialize_json=True)
+
     @task(
         retries=3,
         retry_delay=duration(minutes=5),
@@ -40,7 +41,7 @@ def reviews_ingest():
             ['--key', s3_key, '--bucket', '{{ var.value.bucket_landing }}'],
         )
 
-    ingest_and_partition_category.expand(reviews_category=REVIEWS_CATEGORIES)
+    ingest_and_partition_category.expand(reviews_category=get_categories())
 
 
 reviews_ingest()
