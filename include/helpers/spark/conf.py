@@ -17,11 +17,11 @@ DOCKER_CONF = {
     'spark.hadoop.fs.s3a.connection.ssl.enabled': 'false',
 }
 
-EMR_CONF = {
+GLUE_CONF = {
     'spark.sql.catalog.lake.type': 'glue',
 }
 
-BACKEND_CONF = {'docker': DOCKER_CONF, 'emr': EMR_CONF}
+BACKEND_CONF = {'docker': DOCKER_CONF, 'glue': GLUE_CONF}
 
 
 def spark_conf(backend: str) -> dict[str, str]:
