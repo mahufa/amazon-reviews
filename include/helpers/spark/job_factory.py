@@ -1,6 +1,6 @@
 import os
 
-from airflow.providers.amazon.aws.operators.emr import EmrServerlessStartJobOperator
+from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 
@@ -11,16 +11,16 @@ def spark_job_depending_on_backend(
     task_id: str,
     script: str,
     args: list[str],
-) -> DockerOperator | EmrServerlessStartJobOperator:
+) -> DockerOperator | GlueJobOperator:
     backend = os.environ.get('SPARK_BACKEND')
-    if backend not in ['docker', 'emr']:
+    if backend not in ['docker', 'glue']:
         raise ValueError(f'Backend {backend} not supported')
 
     conf = spark_conf(backend)
     if backend == 'docker':
         return _get_docker_op(task_id, script, conf, args)
 
-    return _get_emr_op(task_id, script, conf, args)
+    return _get_glue_op(task_id, script, conf, args)
 
 
 def _get_docker_op(
@@ -60,11 +60,11 @@ def _get_docker_op(
     )
 
 
-# TODO: EMR Serverless operator
-def _get_emr_op(
+# TODO: Glue 6.0 job operator (needs Terraform: script bucket, IAM role)
+def _get_glue_op(
     task_id: str,
     script: str,
     conf: dict[str, str],
     args: list[str],
-) -> EmrServerlessStartJobOperator:
+) -> GlueJobOperator:
     raise NotImplementedError
