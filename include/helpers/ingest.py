@@ -1,3 +1,4 @@
+import logging
 from typing import IO, Any, Self
 
 import requests
@@ -5,6 +6,8 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.sdk import Variable
 
 PART_SIZE = 8 * 1024 * 1024
+
+log = logging.getLogger(__name__)
 
 
 def get_and_store_file(
@@ -15,6 +18,8 @@ def get_and_store_file(
         file_path,
         stream=True,
         timeout=(10.0, 60.0),
+        # response.raw is not decoded, so ask for the file as-is to keep landing byte-exact
+        headers={'Accept-Encoding': 'identity'},
     ) as response:
         response.raise_for_status()
 
@@ -83,13 +88,23 @@ class _MultipartUpload:
         )
 
     def _abort(self) -> None:
-        self.client.abort_multipart_upload(
-            Bucket=self.bucket, Key=self.key, UploadId=self.upload_id
-        )
+        try:
+            self.client.abort_multipart_upload(
+                Bucket=self.bucket,
+                Key=self.key,
+                UploadId=self.upload_id,
+            )
+        except Exception:
+            log.exception(
+                'Failed to abort multipart upload %s for s3://%s/%s',
+                self.upload_id,
+                self.bucket,
+                self.key,
+            )
 
 
 def _get_s3_client_and_bucket() -> tuple[Any, str]:
     return (
         S3Hook(aws_conn_id='lake_s3').get_conn(),
-        Variable.get('BUCKET_LANDING'),
+        Variable.get('bucket_landing'),
     )

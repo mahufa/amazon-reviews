@@ -65,6 +65,16 @@ def test_empty_stream_aborts_and_fails(client):
     )
 
 
+def test_failed_abort_keeps_original_error(client):
+    client.upload_part.side_effect = ConnectionError('upload failed')
+    client.abort_multipart_upload.side_effect = RuntimeError('abort failed')
+
+    with pytest.raises(ConnectionError, match='upload failed'):
+        _upload(client, b'abc')
+
+    client.abort_multipart_upload.assert_called_once()
+
+
 def _upload(
     client: MagicMock,
     data: bytes,
