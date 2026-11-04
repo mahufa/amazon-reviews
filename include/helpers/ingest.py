@@ -13,7 +13,9 @@ log = logging.getLogger(__name__)
 def get_and_store_file(
     file_path: str,
     s3_key: str,
-) -> None:
+) -> str:
+    client, bucket = _get_s3_client_and_bucket()
+
     with requests.get(
         file_path,
         stream=True,
@@ -23,15 +25,17 @@ def get_and_store_file(
     ) as response:
         response.raise_for_status()
 
-        _store_stream_in_s3(response.raw, s3_key)
+        _store_stream_in_s3(response.raw, s3_key, (client, bucket))
+
+    return f's3a://{bucket}/{s3_key}'
 
 
 def _store_stream_in_s3(
     data_stream: IO[bytes],
     key: str,
-    s3_config: tuple[Any, str] | None = None,
+    s3_config: tuple[Any, str],
 ) -> None:
-    client, bucket_name = s3_config or _get_s3_client_and_bucket()
+    client, bucket_name = s3_config
 
     with _MultipartUpload(client, bucket_name, key) as multipart_upload:
         while part := data_stream.read(PART_SIZE):

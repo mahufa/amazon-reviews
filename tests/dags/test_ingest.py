@@ -75,6 +75,18 @@ def test_failed_abort_keeps_original_error(client):
     client.abort_multipart_upload.assert_called_once()
 
 
+def test_get_and_store_file_returns_landing_uri(client, monkeypatch):
+    response = MagicMock()
+    response.__enter__.return_value.raw = io.BytesIO(b'abc')
+    monkeypatch.setattr(ingest.requests, 'get', MagicMock(return_value=response))
+    monkeypatch.setattr(ingest, '_get_s3_client_and_bucket', lambda: (client, BUCKET))
+
+    uri = ingest.get_and_store_file('https://example.com/All_Beauty.jsonl', KEY)
+
+    assert uri == f's3a://{BUCKET}/{KEY}'
+    client.complete_multipart_upload.assert_called_once()
+
+
 def _upload(
     client: MagicMock,
     data: bytes,

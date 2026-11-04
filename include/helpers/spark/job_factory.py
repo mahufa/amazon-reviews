@@ -37,6 +37,8 @@ def _get_docker_op(
     return DockerOperator(
         image='amazon-reviews-spark:latest',
         task_id=task_id,
+        # One retry for transient failures; code/schema errors would just fail again
+        retries=1,
         command=[
             '/opt/spark/bin/spark-submit',
             '--master',
