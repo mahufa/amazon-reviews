@@ -50,8 +50,10 @@ def _write_valid(
     valid_df: DataFrame,
     target: str,
 ) -> None:
+    # One task per month, so each partition gets one file instead of one per input split
     (
-        valid_df.write.mode('overwrite')
+        valid_df.repartition('year', 'month')
+        .write.mode('overwrite')
         .option('partitionOverwriteMode', 'dynamic')
         .partitionBy('year', 'month', 'category')
         .text(target, 'gzip')
