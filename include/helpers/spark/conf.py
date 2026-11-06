@@ -3,6 +3,8 @@ COMMON_CONF = {
     'spark.sql.catalog.lake': 'org.apache.iceberg.spark.SparkCatalog',
     'spark.sql.catalog.lake.warehouse': 's3://{{ var.value.bucket_silver }}/',
     'spark.sql.catalog.lake.io-impl': 'org.apache.iceberg.aws.s3.S3FileIO',
+    'spark.sql.sources.partitionOverwriteMode': 'dynamic',
+    'spark.sql.session.timeZone': 'UTC',
 }
 
 DOCKER_CONF = {
