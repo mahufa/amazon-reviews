@@ -31,13 +31,17 @@ dev-clean = "docker compose -f docker-compose.yaml -f docker-compose.dev.yaml do
 
 spark-build = "docker build -f spark/Dockerfile --target runtime -t amazon-reviews-spark:latest ."
 
+_spark-build-test = "docker build -f spark/Dockerfile --target test -t amazon-reviews-spark:test ."
+_spark-run-test = "docker run --rm amazon-reviews-spark:test python3 -m pytest tests/spark"
+spark-test = [{ ref = "_spark-build-test" }, { ref = "_spark-run-test" }]
+
 _ruff-check = "ruff check --fix"
 _ruff-format = "ruff format"
 lint = [{ ref = "_ruff-check" }, { ref = "_ruff-format" }]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/dags"]  # Spark tests run in the spark test image: pytest tests/spark
-pythonpath = ["."]
+pythonpath = [".", "spark/src"]
 addopts = "-ra"
 
 [tool.ruff]
