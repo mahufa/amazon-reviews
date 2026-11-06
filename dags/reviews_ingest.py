@@ -6,6 +6,7 @@ from include.helpers.paths import (
     BRONZE_REVIEWS_PREFIX,
     LANDING_META_PREFIX,
     LANDING_REVIEWS_PREFIX,
+    QUARANTINE_PREFIX,
     SILVER_PRODUCTS_TABLE,
 )
 from include.helpers.spark.job_factory import spark_job_depending_on_backend
@@ -58,6 +59,10 @@ def reviews_ingest():
                 land_reviews(category),
                 '--target',
                 f's3a://{{{{ var.value.bucket_bronze }}}}/{BRONZE_REVIEWS_PREFIX}',
+                '--quarantine-path',
+                f's3a://{{{{ var.value.bucket_bronze }}}}/{QUARANTINE_PREFIX}/reviews',
+                '--category',
+                category,
             ],
         )
 
