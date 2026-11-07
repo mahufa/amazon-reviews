@@ -1,0 +1,5 @@
+LANDING_REVIEWS_PREFIX = 'amazon_reviews/review_categories'
+LANDING_META_PREFIX = 'amazon_reviews/meta_categories'
+QUARANTINE_PREFIX = 'amazon_reviews/_quarantine'
+BRONZE_REVIEWS_PREFIX = 'amazon_reviews/reviews'
+SILVER_PRODUCTS_TABLE = 'lake.amazon_reviews.products'
