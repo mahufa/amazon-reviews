@@ -69,8 +69,8 @@ def _write_invalid(
 
 
 def _str_to_ts() -> Column:
-    ts_ms = F.get_json_object('value', '$.timestamp')
-    return F.timestamp_millis(ts_ms.cast('long'))
+    ts = F.get_json_object('value', '$.timestamp')
+    return (ts.try_cast('decimal(20, 3)') / 1000).try_cast('timestamp')
 
 
 def _is_valid() -> Column:

@@ -4,11 +4,14 @@ VALID = '{"rating": 5.0, "timestamp": 1588687728923}'
 LAST_MS_OF_2022 = '{"rating": 4.0, "timestamp": 1672531199999}'
 NO_TIMESTAMP = '{"rating": 3.0}'
 BROKEN_JSON = '{"rating": 2.0, "timestamp": 15886'
+TEXT_TIMESTAMP = '{"rating": 1.0, "timestamp": "2020-05-05"}'
+OVERFLOW = '{"rating": 1.0, "timestamp": 9223372036854775807}'
+INVALID = [NO_TIMESTAMP, BROKEN_JSON, TEXT_TIMESTAMP, OVERFLOW]
 
 
 def test_transform_splits_valid_and_invalid(spark):
     raw = spark.createDataFrame(
-        [(line,) for line in (VALID, LAST_MS_OF_2022, NO_TIMESTAMP, BROKEN_JSON)],
+        [(line,) for line in (VALID, LAST_MS_OF_2022, *INVALID)],
         'value string',
     )
 
@@ -21,7 +24,7 @@ def test_transform_splits_valid_and_invalid(spark):
         ]
     )
     assert invalid.columns == ['value']
-    assert sorted(row.value for row in invalid.collect()) == sorted([NO_TIMESTAMP, BROKEN_JSON])
+    assert sorted(row.value for row in invalid.collect()) == sorted(INVALID)
 
 
 def test_write_valid_creates_one_file_per_partition(spark, tmp_path):
