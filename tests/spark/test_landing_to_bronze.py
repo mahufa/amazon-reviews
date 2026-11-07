@@ -40,3 +40,23 @@ def test_write_valid_creates_one_file_per_partition(spark, tmp_path):
         'year=2020/month=5/category=All_Beauty',
         'year=2022/month=12/category=All_Beauty',
     ]
+
+
+def test_write_valid_splits_large_partitions(spark, tmp_path):
+    rows = [(VALID, 2020, 5, 'All_Beauty')] * 2000
+    # AQE splits a month only along input tasks, so the data needs several input slices
+    valid = spark.createDataFrame(
+        spark.sparkContext.parallelize(rows, 8),
+        'value string, year int, month int, category string',
+    )
+
+    # Tiny target so the one month counts as skewed and AQE splits it
+    advisory_key = 'spark.sql.adaptive.advisoryPartitionSizeInBytes'
+    spark.conf.set(advisory_key, '1k')
+    try:
+        _write_valid(valid, str(tmp_path))
+    finally:
+        spark.conf.unset(advisory_key)
+
+    files = list(tmp_path.glob('year=2020/month=5/category=All_Beauty/*.txt.gz'))
+    assert len(files) > 1

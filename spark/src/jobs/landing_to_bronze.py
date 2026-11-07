@@ -6,7 +6,11 @@ from pyspark.sql import Column, DataFrame, SparkSession
 
 def main() -> None:
     args = _parse_args()
-    spark = SparkSession.builder.appName('landing_to_bronze').getOrCreate()
+    spark = (
+        SparkSession.builder.appName('landing_to_bronze')
+        .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
+        .getOrCreate()
+    )
 
     raw_reviews = spark.read.text(args.source)
 
@@ -50,9 +54,8 @@ def _write_valid(
     valid_df: DataFrame,
     target: str,
 ) -> None:
-    # One task per month, so each partition gets one file instead of one per input split
     (
-        valid_df.repartition('year', 'month')
+        valid_df.hint('rebalance', 'year', 'month')
         .write.mode('overwrite')
         .option('partitionOverwriteMode', 'dynamic')
         .partitionBy('year', 'month', 'category')
