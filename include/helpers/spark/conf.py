@@ -12,6 +12,7 @@ DOCKER_CONF = {
     'spark.sql.catalog.lake.uri': 'jdbc:postgresql://postgres-airflow:5432/iceberg_catalog',
     'spark.sql.catalog.lake.jdbc.user': 'airflow',
     'spark.sql.catalog.lake.jdbc.password': 'airflow',
+    'spark.sql.catalog.lake.jdbc.schema-version': 'V1',
     'spark.sql.catalog.lake.s3.endpoint': '{{ conn.lake_s3.extra_dejson.endpoint_url }}',
     'spark.sql.catalog.lake.s3.path-style-access': 'true',
     'spark.hadoop.fs.s3a.endpoint': '{{ conn.lake_s3.extra_dejson.endpoint_url }}',
