@@ -77,6 +77,8 @@ def reviews_ingest():
             join_uris(land_meta.expand(category=categories)),
             '--table',
             SILVER_PRODUCTS_TABLE,
+            '--quarantine-path',
+            f's3a://{{{{ var.value.bucket_bronze }}}}/{QUARANTINE_PREFIX}/meta',
         ],
     )
 

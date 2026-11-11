@@ -1,11 +1,17 @@
-import argparse
-
 import pyspark.sql.functions as F
+from common import parse_args
 from pyspark.sql import Column, DataFrame, SparkSession
+
+ARGS = [
+    '--source',
+    '--target',
+    '--quarantine-path',
+    '--category',
+]
 
 
 def main() -> None:
-    args = _parse_args()
+    args = parse_args(ARGS)
     spark = (
         SparkSession.builder.appName('landing_to_bronze')
         .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
@@ -20,15 +26,6 @@ def main() -> None:
     _write_invalid(invalid, args.quarantine_path, args.category)
 
     spark.stop()
-
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--source', required=True)
-    parser.add_argument('--target', required=True)
-    parser.add_argument('--quarantine-path', required=True)
-    parser.add_argument('--category', required=True)
-    return parser.parse_args()
 
 
 def _transform(
