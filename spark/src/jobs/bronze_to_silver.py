@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from common import ensure_namespace, epoch_ms_to_ts, parse_args, write_to_silver
+from common import ensure_namespace, epoch_ms_to_ts, parse_args, write_iceberg
 from pyspark.sql import Column, DataFrame, SparkSession
 
 ARGS = [
@@ -41,8 +41,8 @@ def main() -> None:
     reviews, rejects = _transform(reviews_partition)
 
     this_month = (F.col('year') == year) & (F.col('month') == month)
-    write_to_silver(reviews, args.table, PARTITION_COLUMNS, this_month)
-    write_to_silver(rejects, args.rejects_table, PARTITION_COLUMNS, this_month)
+    write_iceberg(reviews, args.table, PARTITION_COLUMNS, this_month)
+    write_iceberg(rejects, args.rejects_table, PARTITION_COLUMNS, this_month)
 
     spark.stop()
 

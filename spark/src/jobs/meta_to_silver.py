@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from common import ensure_namespace, parse_args, write_to_silver
+from common import ensure_namespace, parse_args, write_iceberg
 from pyspark.sql import Column, DataFrame, SparkSession
 
 ARGS = [
@@ -40,7 +40,7 @@ def main() -> None:
 
     products, corrupt = _transform(raw_products)
 
-    write_to_silver(products, args.table, ['category'])
+    write_iceberg(products, args.table, ['category'])
     _write_corrupt(corrupt, args.quarantine_path)
 
     spark.stop()

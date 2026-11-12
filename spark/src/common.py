@@ -1,6 +1,6 @@
 import argparse
 
-from pyspark.sql import Column, DataFrame, SparkSession
+from pyspark.sql import Column, DataFrame, DataFrameWriterV2, SparkSession
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:
@@ -25,16 +25,28 @@ def ensure_namespace(table: str, spark: SparkSession) -> None:
     spark.sql(f'CREATE NAMESPACE IF NOT EXISTS {namespace}')
 
 
-def write_to_silver(
+def write_iceberg(
     df: DataFrame,
     table: str,
     partition_cols: list[str],
     replace_where: Column | None = None,
+    location: str | None = None,
 ) -> None:
     writer = df.hint('rebalance', *partition_cols).writeTo(table)
     if not df.sparkSession.catalog.tableExists(table):
-        writer.using('iceberg').partitionedBy(*partition_cols).create()
+        _write_with_create(writer, partition_cols, location)
     elif replace_where is None:
         writer.overwritePartitions()
     else:
         writer.overwrite(replace_where)
+
+
+def _write_with_create(
+    writer: DataFrameWriterV2,
+    partition_cols: list[str],
+    location: str | None,
+) -> None:
+    writer = writer.using('iceberg').partitionedBy(*partition_cols)
+    if location is not None:
+        writer = writer.tableProperty('location', location)
+    writer.create()
