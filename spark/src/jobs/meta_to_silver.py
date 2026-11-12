@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from common import parse_args
+from common import ensure_namespace, parse_args, write_to_silver
 from pyspark.sql import Column, DataFrame, SparkSession
 
 ARGS = [
@@ -29,8 +29,7 @@ def main() -> None:
         .getOrCreate()
     )
 
-    namespace = args.table.rsplit('.', 1)[0]
-    spark.sql(f'CREATE NAMESPACE IF NOT EXISTS {namespace}')
+    ensure_namespace(args.table, spark)
 
     paths = args.sources.split(',')
 
@@ -41,7 +40,7 @@ def main() -> None:
 
     products, corrupt = _transform(raw_products)
 
-    _write_to_silver(products, args.table)
+    write_to_silver(products, args.table, ['category'])
     _write_corrupt(corrupt, args.quarantine_path)
 
     spark.stop()
@@ -74,17 +73,6 @@ def _transform(
     corrupt = parsed.filter(~_is_valid()).select('value', 'category')
 
     return valid, corrupt
-
-
-def _write_to_silver(
-    products: DataFrame,
-    table: str,
-) -> None:
-    writer = products.hint('rebalance', 'category').writeTo(table)
-    if not products.sparkSession.catalog.tableExists(table):
-        writer.using('iceberg').partitionedBy('category').create()
-    else:
-        writer.overwritePartitions()
 
 
 def _write_corrupt(
