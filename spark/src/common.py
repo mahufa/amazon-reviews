@@ -1,5 +1,6 @@
 import argparse
 
+import pyspark.sql.functions as F
 from pyspark.sql import Column, DataFrame, DataFrameWriterV2, SparkSession
 
 
@@ -18,6 +19,11 @@ def epoch_ms_to_ts(epoch_ms: Column) -> Column:
     Shared by bronze (partitioning) and silver (parsing) so both layers accept the same values.
     """
     return (epoch_ms.try_cast('decimal(20, 3)') / 1000).try_cast('timestamp')
+
+
+def month_filter(year: int, month: int) -> Column:
+    """Predicate on the `year`/`month` partition columns shared by silver and gold."""
+    return (F.col('year') == year) & (F.col('month') == month)
 
 
 def ensure_namespace(table: str, spark: SparkSession) -> None:
