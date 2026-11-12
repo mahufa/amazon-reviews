@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from common import parse_args
+from common import epoch_ms_to_ts, parse_args
 from pyspark.sql import Column, DataFrame, SparkSession
 
 ARGS = [
@@ -32,7 +32,7 @@ def _transform(
     raw: DataFrame,
     category: str,
 ) -> tuple[DataFrame, DataFrame]:
-    ts = _str_to_ts()
+    ts = epoch_ms_to_ts(F.get_json_object('value', '$.timestamp'))
 
     bronze = raw.select(
         'value',
@@ -66,11 +66,6 @@ def _write_invalid(
     category: str,
 ) -> None:
     invalid_df.write.mode('overwrite').text(f'{quarantine_path}/category={category}', 'gzip')
-
-
-def _str_to_ts() -> Column:
-    ts = F.get_json_object('value', '$.timestamp')
-    return (ts.try_cast('decimal(20, 3)') / 1000).try_cast('timestamp')
 
 
 def _is_valid() -> Column:
