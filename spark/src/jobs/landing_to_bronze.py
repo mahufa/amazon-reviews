@@ -12,11 +12,7 @@ ARGS = [
 
 def main() -> None:
     args = parse_args(ARGS)
-    spark = (
-        SparkSession.builder.appName('landing_to_bronze')
-        .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.appName('landing_to_bronze').getOrCreate()
 
     raw_reviews = spark.read.text(args.source)
 
