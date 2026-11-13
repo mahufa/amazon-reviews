@@ -6,6 +6,8 @@ from docker.types import Mount
 
 from include.helpers.spark.conf import spark_conf, to_conf_flags
 
+LOCAL_SPARK_POOL = 'spark_local'
+
 
 def spark_job_depending_on_backend(
     task_id: str,
@@ -39,6 +41,7 @@ def _get_docker_op(
         task_id=task_id,
         # One retry for transient failures; code/schema errors would just fail again
         retries=1,
+        pool=LOCAL_SPARK_POOL,
         command=[
             '/opt/spark/bin/spark-submit',
             '--master',

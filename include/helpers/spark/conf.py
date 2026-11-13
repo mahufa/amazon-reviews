@@ -10,6 +10,7 @@ COMMON_CONF = {
 }
 
 DOCKER_CONF = {
+    'spark.driver.memory': '4g',
     'spark.sql.catalog.lake.type': 'jdbc',
     'spark.sql.catalog.lake.uri': 'jdbc:postgresql://postgres-airflow:5432/iceberg_catalog',
     'spark.sql.catalog.lake.jdbc.user': 'airflow',
