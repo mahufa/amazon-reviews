@@ -3,11 +3,16 @@ from typing import IO, Any, Self
 
 import requests
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.sdk import Variable
+from airflow.sdk import Variable, task
 
 PART_SIZE = 8 * 1024 * 1024
 
 log = logging.getLogger(__name__)
+
+
+@task
+def get_categories() -> list[str]:
+    return Variable.get('reviews_categories', deserialize_json=True)
 
 
 def get_and_store_file(

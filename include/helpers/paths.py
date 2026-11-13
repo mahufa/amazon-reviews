@@ -1,3 +1,4 @@
+HF_RAW_URL = 'https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw'
 LANDING_REVIEWS_PREFIX = 'amazon_reviews/review_categories'
 LANDING_META_PREFIX = 'amazon_reviews/meta_categories'
 QUARANTINE_PREFIX = 'amazon_reviews/_quarantine'
