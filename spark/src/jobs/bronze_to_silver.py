@@ -55,22 +55,18 @@ def _read_month(
 def _transform(
     reviews_partition: DataFrame,
 ) -> tuple[DataFrame, DataFrame]:
-    parsed = (
-        reviews_partition.select(
+    parsed = reviews_partition.select(
+        'value',
+        *PARTITION_COLUMNS,
+        F.from_json(
             'value',
-            *PARTITION_COLUMNS,
-            F.from_json(
-                'value',
-                SCHEMA,
-                options={
-                    'mode': 'PERMISSIVE',
-                    'columnNameOfCorruptRecord': '_corrupt_record',
-                },
-            ).alias('j'),
-        )
-        .withColumn('reason', _reject_reason())
-        .cache()
-    )
+            SCHEMA,
+            options={
+                'mode': 'PERMISSIVE',
+                'columnNameOfCorruptRecord': '_corrupt_record',
+            },
+        ).alias('j'),
+    ).withColumn('reason', _reject_reason())
 
     valid = _dedup(
         parsed.filter(F.col('reason').isNull())
