@@ -35,7 +35,7 @@ def _transform(
         F.year(ts).alias('year'),
         F.month(ts).alias('month'),
         F.lit(category).alias('category'),
-    ).cache()
+    )
 
     valid = bronze.filter(_is_valid())
     invalid = bronze.filter(~_is_valid()).select('value')

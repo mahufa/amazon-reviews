@@ -57,7 +57,7 @@ def _transform(
             SCHEMA,
             {'mode': 'PERMISSIVE', 'columnNameOfCorruptRecord': '_corrupt_record'},
         ).alias('j'),
-    ).cache()
+    )
 
     valid = (
         parsed.filter(_is_valid())
