@@ -1,11 +1,17 @@
-import argparse
-
 import pyspark.sql.functions as F
+from common import epoch_ms_to_ts, parse_args
 from pyspark.sql import Column, DataFrame, SparkSession
+
+ARGS = [
+    '--source',
+    '--target',
+    '--quarantine-path',
+    '--category',
+]
 
 
 def main() -> None:
-    args = _parse_args()
+    args = parse_args(ARGS)
     spark = (
         SparkSession.builder.appName('landing_to_bronze')
         .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
@@ -22,20 +28,11 @@ def main() -> None:
     spark.stop()
 
 
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--source', required=True)
-    parser.add_argument('--target', required=True)
-    parser.add_argument('--quarantine-path', required=True)
-    parser.add_argument('--category', required=True)
-    return parser.parse_args()
-
-
 def _transform(
     raw: DataFrame,
     category: str,
 ) -> tuple[DataFrame, DataFrame]:
-    ts = _str_to_ts()
+    ts = epoch_ms_to_ts(F.get_json_object('value', '$.timestamp'))
 
     bronze = raw.select(
         'value',
@@ -69,11 +66,6 @@ def _write_invalid(
     category: str,
 ) -> None:
     invalid_df.write.mode('overwrite').text(f'{quarantine_path}/category={category}', 'gzip')
-
-
-def _str_to_ts() -> Column:
-    ts = F.get_json_object('value', '$.timestamp')
-    return (ts.try_cast('decimal(20, 3)') / 1000).try_cast('timestamp')
 
 
 def _is_valid() -> Column:
