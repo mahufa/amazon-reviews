@@ -36,7 +36,7 @@ def _transform(products: DataFrame) -> DataFrame:
     """
     attributes = F.struct(
         'title',
-        'store',
+        F.nullif(F.trim('store'), F.lit('')).alias('store'),
         'main_category',
         'category',
         F.nullif(F.array_join('categories', ' > '), F.lit('')).alias('category_path'),

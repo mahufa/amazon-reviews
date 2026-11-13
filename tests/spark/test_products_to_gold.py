@@ -86,3 +86,18 @@ def test_transform_empty_or_missing_categories_give_null_path(spark):
 
     assert rows['P1'].category_path is None
     assert rows['P2'].category_path is None
+
+
+def test_transform_trims_store_and_turns_blank_into_null(spark):
+    rows = transform(
+        spark,
+        [
+            silver_product(parent_asin='P1', store=' Acme '),
+            silver_product(parent_asin='P2', store=''),
+            silver_product(parent_asin='P3', store='   '),
+            silver_product(parent_asin='P4', store=None),
+        ],
+    )
+
+    assert rows['P1'].store == 'Acme'
+    assert [rows[p].store for p in ('P2', 'P3', 'P4')] == [None, None, None]
