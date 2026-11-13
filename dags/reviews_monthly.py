@@ -5,8 +5,10 @@ from pendulum import datetime, duration
 from include.helpers.monthly import bronze_month_has_data
 from include.helpers.paths import (
     BRONZE_REVIEWS_PREFIX,
+    GOLD_DIM_PRODUCT_TABLE,
     GOLD_FACT_REVIEW_TABLE,
     GOLD_PREFIX,
+    GOLD_STORE_MONTHLY_TABLE,
     SILVER_REJECTS_TABLE,
     SILVER_REVIEWS_TABLE,
 )
@@ -62,7 +64,26 @@ def reviews_monthly():
         ],
     )
 
-    check_partition() >> bronze_to_silver >> silver_to_gold
+    gold_to_mart = spark_job_depending_on_backend(
+        'gold_to_mart',
+        'jobs/gold_to_mart.py',
+        [
+            '--year',
+            '{{ data_interval_start.year }}',
+            '--month',
+            '{{ data_interval_start.month }}',
+            '--fact',
+            GOLD_FACT_REVIEW_TABLE,
+            '--dim-product',
+            GOLD_DIM_PRODUCT_TABLE,
+            '--table',
+            GOLD_STORE_MONTHLY_TABLE,
+            '--location',
+            f's3://{{{{ var.value.bucket_gold }}}}/{GOLD_PREFIX}/store_monthly_ratings',
+        ],
+    )
+
+    check_partition() >> bronze_to_silver >> silver_to_gold >> gold_to_mart
 
 
 reviews_monthly()
