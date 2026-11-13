@@ -5,9 +5,12 @@ COMMON_CONF = {
     'spark.sql.catalog.lake.io-impl': 'org.apache.iceberg.aws.s3.S3FileIO',
     'spark.sql.sources.partitionOverwriteMode': 'dynamic',
     'spark.sql.session.timeZone': 'UTC',
+    # Target size of written files: AQE merges/splits shuffle partitions towards it
+    'spark.sql.adaptive.advisoryPartitionSizeInBytes': '512m',
 }
 
 DOCKER_CONF = {
+    'spark.driver.memory': '4g',
     'spark.sql.catalog.lake.type': 'jdbc',
     'spark.sql.catalog.lake.uri': 'jdbc:postgresql://postgres-airflow:5432/iceberg_catalog',
     'spark.sql.catalog.lake.jdbc.user': 'airflow',

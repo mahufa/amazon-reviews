@@ -23,11 +23,7 @@ SCHEMA = """
 
 def main() -> None:
     args = parse_args(ARGS)
-    spark = (
-        SparkSession.builder.appName('meta_to_silver')
-        .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.appName('meta_to_silver').getOrCreate()
 
     ensure_namespace(args.table, spark)
 
@@ -61,7 +57,7 @@ def _transform(
             SCHEMA,
             {'mode': 'PERMISSIVE', 'columnNameOfCorruptRecord': '_corrupt_record'},
         ).alias('j'),
-    ).cache()
+    )
 
     valid = (
         parsed.filter(_is_valid())
