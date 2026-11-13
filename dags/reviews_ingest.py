@@ -4,6 +4,8 @@ from pendulum import datetime, duration
 from include.helpers.ingest import get_and_store_file
 from include.helpers.paths import (
     BRONZE_REVIEWS_PREFIX,
+    GOLD_DIM_PRODUCT_TABLE,
+    GOLD_PREFIX,
     LANDING_META_PREFIX,
     LANDING_REVIEWS_PREFIX,
     QUARANTINE_PREFIX,
@@ -69,7 +71,7 @@ def reviews_ingest():
     categories = get_categories()
     ingest_reviews.expand(category=categories)
 
-    spark_job_depending_on_backend(
+    meta_to_silver = spark_job_depending_on_backend(
         'meta_to_silver',
         'jobs/meta_to_silver.py',
         [
@@ -81,6 +83,20 @@ def reviews_ingest():
             f's3a://{{{{ var.value.bucket_bronze }}}}/{QUARANTINE_PREFIX}/meta',
         ],
     )
+    products_to_gold = spark_job_depending_on_backend(
+        'products_to_gold',
+        'jobs/products_to_gold.py',
+        [
+            '--source',
+            SILVER_PRODUCTS_TABLE,
+            '--table',
+            GOLD_DIM_PRODUCT_TABLE,
+            '--location',
+            f's3://{{{{ var.value.bucket_gold }}}}/{GOLD_PREFIX}/dim_product',
+        ],
+    )
+
+    meta_to_silver >> products_to_gold
 
 
 reviews_ingest()
