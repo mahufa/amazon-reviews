@@ -5,6 +5,8 @@ from pendulum import datetime, duration
 from include.helpers.monthly import bronze_month_has_data
 from include.helpers.paths import (
     BRONZE_REVIEWS_PREFIX,
+    GOLD_FACT_REVIEW_TABLE,
+    GOLD_PREFIX,
     SILVER_REJECTS_TABLE,
     SILVER_REVIEWS_TABLE,
 )
@@ -51,6 +53,12 @@ def reviews_monthly():
             '{{ data_interval_start.year }}',
             '--month',
             '{{ data_interval_start.month }}',
+            '--source',
+            SILVER_REVIEWS_TABLE,
+            '--table',
+            GOLD_FACT_REVIEW_TABLE,
+            '--location',
+            f's3://{{{{ var.value.bucket_gold }}}}/{GOLD_PREFIX}/fact_review',
         ],
     )
 
