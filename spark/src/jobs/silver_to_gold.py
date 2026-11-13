@@ -14,11 +14,7 @@ PARTITION_COLUMNS = ['year', 'month', 'category']
 
 def main() -> None:
     args = parse_args(ARGS)
-    spark = (
-        SparkSession.builder.appName('silver_to_gold')
-        .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.appName('silver_to_gold').getOrCreate()
 
     ensure_namespace(args.table, spark)
     this_month = month_filter(int(args.year), int(args.month))

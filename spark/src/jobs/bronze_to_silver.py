@@ -27,11 +27,7 @@ DEDUP_KEYS = ['user_id', 'asin', 'timestamp', 'category']
 
 def main() -> None:
     args = parse_args(ARGS)
-    spark = (
-        SparkSession.builder.appName('bronze_to_silver')
-        .config('spark.sql.adaptive.advisoryPartitionSizeInBytes', '512m')
-        .getOrCreate()
-    )
+    spark = SparkSession.builder.appName('bronze_to_silver').getOrCreate()
 
     ensure_namespace(args.table, spark)
     year, month = int(args.year), int(args.month)
