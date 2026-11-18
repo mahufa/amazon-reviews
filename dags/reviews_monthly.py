@@ -17,9 +17,9 @@ from include.helpers.spark.job_factory import spark_job_depending_on_backend
 
 @dag(
     dag_id='reviews_monthly',
-    start_date=datetime(2022, 5, 1),
+    start_date=datetime(1996, 5, 1),
     end_date=datetime(2023, 9, 30),
-    catchup=True,
+    catchup=False,
     description='This DAG transforms raw reviews.',
     tags=['monthly_transform', 'amazon_reviews'],
     dagrun_timeout=duration(hours=5),
