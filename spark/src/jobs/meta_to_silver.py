@@ -3,9 +3,10 @@ from common import ensure_namespace, parse_args, write_iceberg
 from pyspark.sql import Column, DataFrame, SparkSession
 
 ARGS = [
-    '--sources',
+    '--source',
     '--table',
     '--quarantine-path',
+    '--category',
 ]
 SCHEMA = """
     parent_asin STRING,
@@ -27,31 +28,22 @@ def main() -> None:
 
     ensure_namespace(args.table, spark)
 
-    paths = args.sources.split(',')
+    raw_products = spark.read.text(args.source)
 
-    raw_products = spark.read.text(paths).select(
-        'value',
-        _extract_cat().alias('category'),
-    )
-
-    products, corrupt = _transform(raw_products)
+    products, corrupt = _transform(raw_products, args.category)
 
     write_iceberg(products, args.table, ['category'])
-    _write_corrupt(corrupt, args.quarantine_path)
+    _write_corrupt(corrupt, args.quarantine_path, args.category)
 
     spark.stop()
 
 
-def _extract_cat() -> Column:
-    return F.regexp_extract(F.col('_metadata.file_name'), r'^meta_(.+)\.jsonl$', 1)
-
-
 def _transform(
     raw_products: DataFrame,
+    category: str,
 ) -> tuple[DataFrame, DataFrame]:
     parsed = raw_products.select(
         'value',
-        'category',
         F.from_json(
             'value',
             SCHEMA,
@@ -61,12 +53,12 @@ def _transform(
 
     valid = (
         parsed.filter(_is_valid())
-        .select('j.*', 'category')
+        .select('j.*', F.lit(category).alias('category'))
         .drop('_corrupt_record')
         .withColumn('price', F.col('price').try_cast('decimal(10,2)'))
         .dropDuplicates(['parent_asin', 'category'])
     )
-    corrupt = parsed.filter(~_is_valid()).select('value', 'category')
+    corrupt = parsed.filter(~_is_valid()).select('value')
 
     return valid, corrupt
 
@@ -74,13 +66,9 @@ def _transform(
 def _write_corrupt(
     invalid_df: DataFrame,
     quarantine_path: str,
+    category: str,
 ) -> None:
-    (
-        invalid_df.write.mode('overwrite')
-        .partitionBy('category')
-        .option('partitionOverwriteMode', 'static')
-        .text(quarantine_path, 'gzip')
-    )
+    invalid_df.write.mode('overwrite').text(f'{quarantine_path}/category={category}', 'gzip')
 
 
 def _is_valid() -> Column:
