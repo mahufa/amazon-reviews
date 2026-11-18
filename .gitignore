@@ -9,6 +9,5 @@ airflow.db
 logs/
 .idea/
 .ruff_cache
-uv.lock
 /notebooks
 /data
