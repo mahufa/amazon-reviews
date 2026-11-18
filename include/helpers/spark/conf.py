@@ -36,3 +36,7 @@ def spark_conf(backend: str) -> dict[str, str]:
 
 def to_conf_flags(conf: dict[str, str]) -> list[str]:
     return [part for key, value in conf.items() for part in ('--conf', f'{key}={value}')]
+
+
+def to_glue_conf(conf: dict[str, str]) -> str:
+    return ' --conf '.join(f'{key}={value}' for key, value in conf.items())

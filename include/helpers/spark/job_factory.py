@@ -1,12 +1,15 @@
 import os
+from pathlib import Path
 
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 
-from include.helpers.spark.conf import spark_conf, to_conf_flags
+from include.helpers.spark.conf import spark_conf, to_conf_flags, to_glue_conf
 
 LOCAL_SPARK_POOL = 'spark_local'
+# Must not exceed the Glue jobs' MaxConcurrentRuns, or extra runs fail at start
+GLUE_MAX_CONCURRENT_RUNS = 4
 
 
 def spark_job_depending_on_backend(
@@ -39,7 +42,6 @@ def _get_docker_op(
     return DockerOperator(
         image='amazon-reviews-spark:latest',
         task_id=task_id,
-        # One retry for transient failures; code/schema errors would just fail again
         retries=1,
         pool=LOCAL_SPARK_POOL,
         command=[
@@ -65,11 +67,25 @@ def _get_docker_op(
     )
 
 
-# TODO: Glue 6.0 job operator (needs Terraform: script bucket, IAM role)
 def _get_glue_op(
     task_id: str,
     script: str,
     conf: dict[str, str],
     args: list[str],
 ) -> GlueJobOperator:
-    raise NotImplementedError
+    script_args = dict(zip(args[::2], args[1::2], strict=True)) | {'--conf': to_glue_conf(conf)}
+
+    return GlueJobOperator(
+        task_id=task_id,
+        job_name=_glue_job_name(script),
+        retries=1,
+        max_active_tis_per_dag=GLUE_MAX_CONCURRENT_RUNS,
+        aws_conn_id='lake_s3',
+        script_args=script_args,
+        stop_job_run_on_kill=True,
+        verbose=True,
+    )
+
+
+def _glue_job_name(script: str) -> str:
+    return f'amazon-reviews-{Path(script).stem}'
