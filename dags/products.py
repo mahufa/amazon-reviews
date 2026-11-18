@@ -1,4 +1,4 @@
-from airflow.sdk import dag, task
+from airflow.sdk import dag, task, task_group
 from pendulum import datetime, duration
 
 from include.helpers.ingest import get_and_store_file, get_categories
@@ -33,22 +33,23 @@ def products():
             f'{LANDING_META_PREFIX}/meta_{category}.jsonl',
         )
 
-    @task
-    def join_uris(uris: list[str]) -> str:
-        return ','.join(uris)
+    @task_group
+    def ingest_meta(category: str):
+        spark_job_depending_on_backend(
+            'meta_to_silver',
+            'jobs/meta_to_silver.py',
+            [
+                '--source',
+                land_meta(category),
+                '--table',
+                SILVER_PRODUCTS_TABLE,
+                '--quarantine-path',
+                f's3a://{{{{ var.value.bucket_bronze }}}}/{QUARANTINE_PREFIX}/meta',
+                '--category',
+                category,
+            ],
+        )
 
-    meta_to_silver = spark_job_depending_on_backend(
-        'meta_to_silver',
-        'jobs/meta_to_silver.py',
-        [
-            '--sources',
-            join_uris(land_meta.expand(category=get_categories())),
-            '--table',
-            SILVER_PRODUCTS_TABLE,
-            '--quarantine-path',
-            f's3a://{{{{ var.value.bucket_bronze }}}}/{QUARANTINE_PREFIX}/meta',
-        ],
-    )
     products_to_gold = spark_job_depending_on_backend(
         'products_to_gold',
         'jobs/products_to_gold.py',
@@ -62,7 +63,7 @@ def products():
         ],
     )
 
-    meta_to_silver >> products_to_gold
+    ingest_meta.expand(category=get_categories()) >> products_to_gold
 
 
 products()

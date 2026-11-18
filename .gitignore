@@ -11,3 +11,4 @@ logs/
 .ruff_cache
 /notebooks
 /data
+/adm_pass.txt

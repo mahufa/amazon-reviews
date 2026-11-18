@@ -33,8 +33,8 @@ flowchart LR
     CAT[(Iceberg catalog<br/>JDBC local / Glue on AWS)] -.metadata.-> S & G
 ```
 
-**DAGs:** `reviews_ingest` (download + bronze per category), `products` (metadata → silver →
-`dim_product`), `reviews_monthly` (one month: silver → gold → mart; covers the dataset span
+**DAGs:** `reviews_ingest` (download + bronze per category), `products` (download + silver per
+category → `dim_product`), `reviews_monthly` (one month: silver → gold → mart; covers the dataset span
 1996-05..2023-09, months are loaded with Airflow backfill).
 
 ## Design notes
