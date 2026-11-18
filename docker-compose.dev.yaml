@@ -1,5 +1,7 @@
 services:
   postgres-airflow:
+    ports:
+      - "5432:5432"
     volumes:
       - ./dev/postgres/init:/docker-entrypoint-initdb.d
 

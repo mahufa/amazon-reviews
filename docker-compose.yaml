@@ -10,12 +10,12 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: false
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
-    AIRFLOW__API_AUTH__JWT_SECRET: local-dev-jwt-secret
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?set AIRFLOW_JWT_SECRET in .env}
     PYTHONPATH: '/opt/airflow'
   volumes:
     - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
     - ./include:/opt/airflow/include
+    - airflow_logs:/opt/airflow/logs
   depends_on:
     postgres-airflow:
       condition: service_healthy
@@ -31,8 +31,6 @@ services:
       - POSTGRES_DB=airflow
     volumes:
       - postgres_airflow_db:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
@@ -47,8 +45,8 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: admin
-      _AIRFLOW_WWW_USER_PASSWORD: admin
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:?set AIRFLOW_ADMIN_USER in .env}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?set AIRFLOW_ADMIN_PASSWORD in .env}
     depends_on:
       postgres-airflow:
         condition: service_healthy
@@ -57,7 +55,7 @@ services:
     <<: *airflow-common
     command: api-server
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 10s
@@ -88,3 +86,4 @@ networks:
 
 volumes:
   postgres_airflow_db:
+  airflow_logs:
