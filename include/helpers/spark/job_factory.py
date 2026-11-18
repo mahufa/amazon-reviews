@@ -8,7 +8,7 @@ from docker.types import Mount
 from include.helpers.spark.conf import spark_conf, to_conf_flags, to_glue_conf
 
 LOCAL_SPARK_POOL = 'spark_local'
-# Must not exceed the Glue jobs' max_concurrent_runs (Terraform), or extra runs fail at start
+# Must not exceed the Glue jobs' MaxConcurrentRuns, or extra runs fail at start
 GLUE_MAX_CONCURRENT_RUNS = 4
 
 
