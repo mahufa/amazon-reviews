@@ -84,6 +84,9 @@ def _get_glue_op(
         script_args=script_args,
         stop_job_run_on_kill=True,
         verbose=True,
+        # Durable mode treats a cleared task as a retry and reuses the old succeeded run,
+        # so reruns silently do nothing. Jobs are idempotent, so resubmitting is safe.
+        durable=False,
     )
 
 
